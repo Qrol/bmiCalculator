@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">BMI</string>
+    <string name="mass_kg">Mass [kg]:</string>
+    <string name="mass_lb">Mass [lb]:</string>
+    <string name="height_cm">Height [cm]:</string>
+    <string name="height_in">Height [in]:</string>
+    <string name="count_bmi">Count</string>
+
+    <string name="height_is_empty">No height entered</string>
+    <string name="mass_is_empty">No mass entered</string>
+    <string name="invalid_value">Invalid value</string>
+
+    <string name="empty_value">0.0</string>
+
+    <string name="bmi_desc_underweight">Your category is: Underweight</string>
+    <string name="bmi_desc_optimal">Your category is: Optimal</string>
+    <string name="bmi_desc_overweight">Your category is: Overweight</string>
+    <string name="bmi_desc_obese">Your category is: Obese</string>
+
+    <string name="bmiLabel">Bmi:</string>
+    <string name="empty_descryption">Description here</string>
+    <string name="person_visualisation">person visualisation</string>
+
+    <string name="change_to_kgcm">Change to kg/cm</string>
+    <string name="change_to_lbin">Change to lb/in</string>
+    <string name="show_history">Show history</string>
+
+</resources>
