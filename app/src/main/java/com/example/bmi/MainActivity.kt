@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                 bmiTV.text = getString(BMI_RESULT)
                 bmiTV.setTextColor(getInt(BMI_COLOR))
                 if (bmiCalc.inputType.ordinal != getInt(UNITS_TYPE)) {
-                    changeUnits()
+                    changeUnits(null)
                 }
                 historyShowingBefore = getBoolean(HISTORY_SHOWING)
                 if (historyShowingBefore) {
@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
         return super.onPrepareOptionsMenu(menu)
     }
 
-    fun changeUnits() {
+    fun changeUnits(item: MenuItem?) {
         binding.apply {
             if (bmiCalc.inputType == BMICalc.UnitType.KgAndCm) {
                 bmiCalc = BMICalc(BMICalc.UnitType.LbAndIn)
