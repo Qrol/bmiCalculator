@@ -2,7 +2,17 @@ package com.example.bmi
 
 class BMICalc(var inputType: BMICalc.UnitType) {
     enum class UnitType {
-        KgAndCm, LbAndIn
+        KgAndCm, LbAndIn;
+        companion object{
+            fun fromOrdinal(ord: Int): UnitType?{
+                for (value in UnitType.values()){
+                    if (value.ordinal == ord){
+                        return value
+                    }
+                }
+                return null
+            }
+        }
     }
 
     fun calc(mass: Double, height: Double): Double? {

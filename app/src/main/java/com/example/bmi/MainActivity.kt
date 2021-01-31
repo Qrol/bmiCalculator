@@ -36,68 +36,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var historyData: MutableList<HistoryItemData>
     private var historyShowingBefore = false
 
-    class HistoryItemData(
-        val height: Double,
-        val mass: Double,
-        val unitType: BMICalc.UnitType,
-        val date: String
-    )
+    private lateinit var dbHelper: DBHelper
 
-    class HistoryAdapter(
-        private val historyDataSet: List<HistoryItemData>,
-        private val context: Context
-    ) : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
-        inner class HistoryViewHolder(view: ItemBmiHistoryBinding) :
-            RecyclerView.ViewHolder(view.root) {
-            val binding = ItemBmiHistoryBinding.bind(view.root)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
-            val binding =
-                ItemBmiHistoryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return HistoryViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
-            val data: HistoryItemData = historyDataSet[historyDataSet.size - 1 - position]
-            holder.binding.apply {
-                historyBmiTV.text =
-                    String.format("%.2f", BMICalc(data.unitType).calc(data.mass, data.height))
-                historyMassTV.text = data.mass.toString()
-                historyHeightTV.text = data.height.toString()
-                historyDateTV.text = data.date
-                if (data.unitType.ordinal == BMICalc.UnitType.KgAndCm.ordinal) {
-                    historyMassLabelTV.text = context.resources.getString(R.string.mass_kg)
-                    historyHeightLabelTV.text = context.resources.getString(R.string.height_cm)
-                } else {
-                    historyMassLabelTV.text = context.resources.getString(R.string.mass_lb)
-                    historyHeightLabelTV.text = context.resources.getString(R.string.height_in)
-                }
-            }
-        }
-
-        override fun getItemCount(): Int = historyDataSet.size
-    }
-
-    private fun loadHistory(): MutableList<HistoryItemData> {
-        val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        val emptyHistoryList = ArrayList<HistoryItemData>()
-        val jsonStr = sharedPref.getString(HISTORY_LIST, null)
-        return if (jsonStr == null) {
-            emptyHistoryList
-        } else {
-            val type = object : TypeToken<MutableList<HistoryItemData>>() {}.type
-            Gson().fromJson<MutableList<HistoryItemData>>(jsonStr, type)
-        }
-
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbarT)
-        historyData = loadHistory()
+
+        dbHelper = DBHelper(this)
+        historyData = dbHelper.getHistory()
         historyViewManager = LinearLayoutManager(this)
         historyViewAdapter = HistoryAdapter(historyData, this)
         binding.historyRV.addItemDecoration(
@@ -132,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                 bmiTV.text = getString(BMI_RESULT)
                 bmiTV.setTextColor(getInt(BMI_COLOR))
                 if (bmiCalc.inputType.ordinal != getInt(UNITS_TYPE)) {
-                    changeUnits(null)
+                    changeUnits()
                 }
                 historyShowingBefore = getBoolean(HISTORY_SHOWING)
                 if (historyShowingBefore) {
@@ -160,7 +109,7 @@ class MainActivity : AppCompatActivity() {
         return super.onPrepareOptionsMenu(menu)
     }
 
-    fun changeUnits(item: MenuItem?) {
+    fun changeUnits() {
         binding.apply {
             if (bmiCalc.inputType == BMICalc.UnitType.KgAndCm) {
                 bmiCalc = BMICalc(BMICalc.UnitType.LbAndIn)
@@ -237,23 +186,21 @@ class MainActivity : AppCompatActivity() {
             val date: String =
                 SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault()).format(Date())
 
-            historyData.add(
-                HistoryItemData(
-                    heightET.text.toString().toDouble(),
-                    massET.text.toString().toDouble(),
-                    bmiCalc.inputType,
-                    date
-                )
+            val historyItem = HistoryItemData(
+                heightET.text.toString().toDouble(),
+                massET.text.toString().toDouble(),
+                bmiCalc.inputType,
+                date
+            )
+            historyData.add(historyItem)
+            dbHelper.insertHistoryItem(
+                historyItem.mass, historyItem.height, historyItem.unitType.ordinal, historyItem.date
             )
             if (historyData.size > 10) {
+                dbHelper.deleteOldestItem()
                 historyData.removeAt(0)
             }
             historyViewAdapter.notifyDataSetChanged()
-            val sharedPref = getPreferences(Context.MODE_PRIVATE)
-            with(sharedPref.edit()) {
-                putString(HISTORY_LIST, Gson().toJson(historyData))
-                commit()
-            }
         }
     }
 
